@@ -18,6 +18,7 @@ namespace DataHunter
     {
         private string filePathString = "D:\\Magisterka\\HurtownieDanych\\dane\\db";
         private int numberOfLines = 0;
+        private int numberOfFiles = 0;
 
         SqlConnection connection;
 
@@ -25,7 +26,8 @@ namespace DataHunter
         {
             InitializeComponent();
             filePath.Text = filePathString;
-            numOfLinesLabel.Text = $"Liczba wierszy: {numberOfLines}";
+            numOfLinesLabel.Text = $"Wiersze: {numberOfLines}";
+            numOfFilesLabel.Text = $"Pliki: {numberOfFiles}";
         }
 
         private void loadFileButton_Click(object sender, EventArgs e)
@@ -35,20 +37,14 @@ namespace DataHunter
 
         private void OdczytajPlik(string nazwa)
         {
-            //listBox1.Items.Clear();
-            //listBox2.Items.Clear();
-            //listBox3.Items.Clear();
-            //listBox4.Items.Clear();
-            //listBox5.Items.Clear();
-            //listBox6.Items.Clear();
-            //listBox7.Items.Clear();
-            numberOfLines = 0;
-            numOfLinesLabel.Text = $"Liczba wierszy: {numberOfLines}";
+            numOfLinesLabel.Text = $"Wiersze: {numberOfLines}";
+            numOfFilesLabel.Text = $"Pliki: {numberOfFiles}";
             //otwarcie pliku
             try
             {
                 var reader = new StreamReader(nazwa);
-                while(!reader.EndOfStream)
+                numberOfFiles++;
+                while (!reader.EndOfStream)
                 {
                     string line = reader.ReadLine();
                     PrzetwarzanieLinii(line);
@@ -60,7 +56,8 @@ namespace DataHunter
                 MessageBox.Show($"File not found.\n\nError message: {ex.Message}\n\n" +
                 $"Details:\n\n{ex.StackTrace}");
             }
-            numOfLinesLabel.Text = $"Liczba wierszy: {numberOfLines}";
+            numOfLinesLabel.Text = $"Wiersze: {numberOfLines}";
+            numOfFilesLabel.Text = $"Pliki: {numberOfFiles}";
         }
 
         private void OtworzPoloczenie()
