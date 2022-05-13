@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace DataHunter
 {
     public partial class Form1 : Form
     {
-        private string filePathString = "D:\\Magisterka\\HurtownieDanych\\dane\\db_small";
+        private string filePathString = "D:\\Magisterka\\HurtownieDanych\\dane\\db";
         private int numberOfLines = 0;
 
         SqlConnection connection;
@@ -34,19 +35,19 @@ namespace DataHunter
 
         private void OdczytajPlik(string nazwa)
         {
-            listBox1.Items.Clear();
-            listBox2.Items.Clear();
-            listBox3.Items.Clear();
-            listBox4.Items.Clear();
-            listBox5.Items.Clear();
-            listBox6.Items.Clear();
-            listBox7.Items.Clear();
+            //listBox1.Items.Clear();
+            //listBox2.Items.Clear();
+            //listBox3.Items.Clear();
+            //listBox4.Items.Clear();
+            //listBox5.Items.Clear();
+            //listBox6.Items.Clear();
+            //listBox7.Items.Clear();
             numberOfLines = 0;
             numOfLinesLabel.Text = $"Liczba wierszy: {numberOfLines}";
             //otwarcie pliku
             try
             {
-                var reader = new StreamReader(filePath.Text);
+                var reader = new StreamReader(nazwa);
                 while(!reader.EndOfStream)
                 {
                     string line = reader.ReadLine();
@@ -64,7 +65,14 @@ namespace DataHunter
 
         private void OtworzPoloczenie()
         {
-            string connectionString = "Data Source=(local);Initial Catalog=HurtowniaLab;Integrated Security=True";
+            // Well since it is a uni project why not play with very bad practices since no one cares about you code anyway and it should just work (restricted by Bethesda)
+            // Looks like error about connecting to database is still a thing
+            // sigh Why we dont use excel from begging?
+            // Hell yeah - error was caused by typo in database name, now im getting diffrent type of error
+            //string connectionString = "Data Source=(local);Initial Catalog=HurtowniaLab;Integrated Security=False";
+            //string connectionString = "Server = (local); Database = HurtowniaLab; Trusted_Connection = False; MultipleActiveResultSets = True; Integrated Security = True";
+            //"Server=***;Initial Catalog=***;Persist Security Info=False;User  ID=***;Password=***;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=False;Connection Timeout=30;"
+            string connectionString = "Initial Catalog = HurtowniaLab;server=(local);User Id = DataHunterUser; Password = Q@wertyuiop; Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;";
             connection = new SqlConnection(connectionString);
             connection.Open();
         }
@@ -76,11 +84,22 @@ namespace DataHunter
 
         private void ZapisDoBazy(string typ, string data, string czas, string adresWejsciowy, string adresWyjsciowy, string protokol)
         {
-            string commandText = $"INSERT into ZoneAlarmLog(Zdarzenie, Data, Czas, Source, Destination, Transport) values ({typ},{data},{czas},{adresWejsciowy},{adresWyjsciowy},{protokol})";
+            string commandText = "INSERT into ZoneAlarmLog(Zdarzenie, Data, Czas, Source, Destination, Transport) values (@typ, @data, @czas, @adresWejsciowy, @adresWyjsciowy, @protokol)";
             SqlCommand command = new SqlCommand(commandText, connection);
+            DateTime dateTime;
+            DateTime.TryParse(data, out dateTime);
+            DateTime time;
+            string xd = czas.Split(" ")[0];
+            DateTime.TryParse(xd, out time);
+            command.Parameters.Add("@typ", SqlDbType.VarChar).Value = typ;
+            command.Parameters.Add("@data", SqlDbType.DateTime).Value = dateTime;
+            command.Parameters.Add("@czas", SqlDbType.DateTime).Value = time;
+            command.Parameters.Add("@adresWejsciowy", SqlDbType.VarChar).Value = adresWejsciowy;
+            command.Parameters.Add("@adresWyjsciowy", SqlDbType.VarChar).Value = adresWyjsciowy;
+            command.Parameters.Add("@protokol", SqlDbType.VarChar).Value = protokol;
             try
             {
-                int wyn = command.ExecuteNonQuery();
+                command.ExecuteNonQuery();
             } 
             catch (SqlException ex)
             {
